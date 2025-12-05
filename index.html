@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>For Mitchyy 💖</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                sans-serif;
+            background: radial-gradient(circle at top,
+                    #ffe4ea 0%,
+                    #ffc1d9 35%,
+                    #120321 100%);
+            color: #fff;
+        }
+
+        #bg {
+            position: fixed;
+            inset: 0;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1.5rem;
+            pointer-events: none;
+        }
+
+        .card {
+            max-width: 520px;
+            background: rgba(0, 0, 0, 0.45);
+            border-radius: 24px;
+            padding: 2rem 2.5rem;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glow-ring {
+            position: absolute;
+            width: 220%;
+            height: 220%;
+            background: radial-gradient(circle,
+                    rgba(255, 255, 255, 0.12),
+                    transparent 60%);
+            top: -60%;
+            left: -60%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease-out;
+        }
+
+        .glow-ring.active {
+            opacity: 1;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.6rem;
+            line-height: 1.1;
+        }
+
+        h1 span {
+            background: linear-gradient(120deg, #ff9a9e, #fad0c4, #fbc2eb);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        #message {
+            min-height: 3.5rem;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            opacity: 0.94;
+            margin: 0.7rem 0 1.2rem 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        #message.hidden {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
+        /* Bouquet inspired by your photo */
+        .bouquet {
+            position: relative;
+            width: 100%;
+            max-width: 360px;
+            margin: 0.2rem auto 1.1rem;
+            aspect-ratio: 4 / 3;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        /* striped background behind bouquet */
+        .bouquet-backdrop {
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(90deg,
+                    #111827 0 16px,
+                    #f9fafb 16px 32px);
+            opacity: 0.28;
+            border-radius: 24px;
+        }
+
+        .bouquet-wrapper {
+            position: relative;
+            width: 82%;
+            height: 78%;
+            background: #f9fafb;
+            border-radius: 36px 36px 10px 10px;
+            border: 1px solid rgba(148, 163, 184, 0.7);
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.65);
+            overflow: hidden;
+            clip-path: polygon(8% 0, 92% 0, 100% 48%, 72% 100%, 28% 100%, 0 48%);
+        }
+
+        /* rose area */
+        .bouquet-roses {
+            position: absolute;
+            inset: 14% 10% 26%;
+            background:
+                radial-gradient(circle at 10% 20%, #ffe5ec 0, #ffe5ec 18%, transparent 19%),
+                radial-gradient(circle at 32% 24%, #ffd1da 0, #ffd1da 18%, transparent 19%),
+                radial-gradient(circle at 56% 22%, #ffe9f0 0, #ffe9f0 18%, transparent 19%),
+                radial-gradient(circle at 78% 26%, #ffc2d2 0, #ffc2d2 18%, transparent 19%),
+                radial-gradient(circle at 18% 52%, #ffe0e8 0, #ffe0e8 18%, transparent 19%),
+                radial-gradient(circle at 42% 50%, #ffd6e0 0, #ffd6e0 18%, transparent 19%),
+                radial-gradient(circle at 68% 50%, #ffeef5 0, #ffeef5 18%, transparent 19%),
+                radial-gradient(circle at 84% 52%, #ffcfe0 0, #ffcfe0 18%, transparent 19%),
+                radial-gradient(circle at 28% 74%, #ffe4ed 0, #ffe4ed 18%, transparent 19%),
+                radial-gradient(circle at 58% 76%, #ffd0de 0, #ffd0de 18%, transparent 19%),
+                radial-gradient(circle at 76% 74%, #ffe9f2 0, #ffe9f2 18%, transparent 19%),
+                #fda4af;
+        }
+
+        /* baby's breath dots */
+        .bouquet-baby {
+            position: absolute;
+            inset: 10% 12% 34%;
+            background:
+                radial-gradient(circle at 12% 18%, #f9fafb 0, #f9fafb 2px, transparent 3px),
+                radial-gradient(circle at 24% 30%, #f9fafb 0, #f9fafb 2px, transparent 3px),
+                radial-gradient(circle at 40% 16%, #f9fafb 0, #f9fafb 2px, transparent 3px),
+                radial-gradient(circle at 60% 14%, #f9fafb 0, #f9fafb 2px, transparent 3px),
+                radial-gradient(circle at 72% 28%, #f9fafb 0, #f9fafb 2px, transparent 3px),
+                radial-gradient(circle at 86% 20%, #f9fafb 0, #f9fafb 2px, transparent 3px),
+                radial-gradient(circle at 18% 60%, #f9fafb 0, #f9fafb 2px, transparent 3px),
+                radial-gradient(circle at 34% 72%, #f9fafb 0, #f9fafb 2px, transparent 3px),
+                radial-gradient(circle at 52% 64%, #f9fafb 0, #f9fafb 2px, transparent 3px),
+                radial-gradient(circle at 70% 70%, #f9fafb 0, #f9fafb 2px, transparent 3px),
+                radial-gradient(circle at 84% 62%, #f9fafb 0, #f9fafb 2px, transparent 3px);
+            opacity: 0.9;
+        }
+
+        /* red bow */
+        .bouquet-bow {
+            position: absolute;
+            bottom: 0;
+            width: 40%;
+            height: 24%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .bow-center {
+            width: 26px;
+            height: 22px;
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(127, 29, 29, 0.8);
+            position: relative;
+            z-index: 2;
+        }
+
+        .bow-loop {
+            position: absolute;
+            width: 36px;
+            height: 24px;
+            background: linear-gradient(135deg, #f97373, #dc2626);
+            border-radius: 30px;
+        }
+
+        .bow-loop.left {
+            right: 24px;
+        }
+
+        .bow-loop.right {
+            left: 24px;
+        }
+
+        .bow-tail {
+            position: absolute;
+            width: 26px;
+            height: 32px;
+            background: linear-gradient(180deg, #ef4444, #b91c1c);
+            bottom: -26px;
+            border-radius: 999px;
+            transform-origin: top;
+        }
+
+        .bow-tail.left {
+            left: -4px;
+            transform: rotate(12deg);
+        }
+
+        .bow-tail.right {
+            right: -4px;
+            transform: rotate(-12deg);
+        }
+
+        .bow-center .bow-tail {
+            box-shadow: 0 4px 10px rgba(127, 29, 29, 0.8);
+        }
+
+        /* photo sticks coming out of bouquet */
+        .photo-stick {
+            position: absolute;
+            bottom: 28%;
+            width: 38%;
+            max-width: 150px;
+            transform-origin: bottom center;
+            transition: transform 0.2s ease-out;
+            z-index: 3;
+        }
+
+        .photo-stick .stem {
+            position: absolute;
+            bottom: -12%;
+            left: 50%;
+            width: 4px;
+            height: 90%;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, #22c55e, #15803d);
+            border-radius: 999px;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+        }
+
+        .photo-card {
+            position: relative;
+            width: 100%;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.6);
+            background: #000;
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-stick.left {
+            left: 6%;
+            transform: rotate(-9deg);
+        }
+
+        .photo-stick.right {
+            right: 6%;
+            transform: rotate(8deg);
+        }
+
+        /* wiggle animation on click */
+        .photo-stick.wiggle {
+            animation: stemWiggle 0.6s ease-out;
+        }
+
+        @keyframes stemWiggle {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            20% {
+                transform: translateY(-4px) rotate(-4deg);
+            }
+
+            40% {
+                transform: translateY(2px) rotate(4deg);
+            }
+
+            60% {
+                transform: translateY(-2px) rotate(-2deg);
+            }
+
+            80% {
+                transform: translateY(1px) rotate(2deg);
+            }
+
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+
+        .signature {
+            font-size: 1rem;
+            font-style: italic;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .signature.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        button {
+            margin-top: 0.6rem;
+            padding: 0.7rem 1.6rem;
+            border-radius: 999px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            color: #3b0035;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease,
+                opacity 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+        }
+
+        .small-note {
+            margin-top: 0.9rem;
+            font-size: 0.84rem;
+            opacity: 0.78;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                padding: 1.4rem 1.6rem;
+                border-radius: 20px;
+            }
+
+            h1 {
+                font-size: 1.9rem;
+            }
+
+            #message {
+                font-size: 0.98rem;
+            }
+
+            .bouquet {
+                max-width: 320px;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="bg"></canvas>
+
+    <div class="overlay">
+        <div class="card">
+            <div class="glow-ring" id="glow"></div>
+            <h1>
+                For my <span>favourite girl, Mitchyy</span> 💕
+            </h1>
+
+            <p id="message" class="hidden"></p>
+
+            <!-- bouquet with images on sticks -->
+            <div class="bouquet">
+                <div class="bouquet-backdrop"></div>
+
+                <div class="bouquet-wrapper">
+                    <div class="bouquet-roses"></div>
+                    <div class="bouquet-baby"></div>
+                </div>
+
+                <div class="photo-stick left">
+                    <div class="stem"></div>
+                    <div class="photo-card">
+                        <img src="mitch-1.jpg" alt="Us – memory 1" />
+                    </div>
+                </div>
+
+                <div class="photo-stick right">
+                    <div class="stem"></div>
+                    <div class="photo-card">
+                        <img src="mitch-2.jpg" alt="Us – memory 2" />
+                    </div>
+                </div>
+
+                <div class="bouquet-bow">
+                    <div class="bow-center">
+                        <div class="bow-loop left"></div>
+                        <div class="bow-loop right"></div>
+                        <div class="bow-tail left"></div>
+                        <div class="bow-tail right"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="signature" id="signature">
+                From your babe,<br />
+                <strong>Ray 💖</strong>
+            </div>
+
+            <button id="revealBtn">Tap to reveal a secret message ✨</button>
+            <div class="small-note">
+                Keep tapping to see what’s in my heart. You can also move your phone
+                or cursor to play with the floating hearts in the background. 🌸
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====== THREE.JS BACKGROUND ======
+        const canvas = document.getElementById("bg");
+        const renderer = new THREE.WebGLRenderer({
+            canvas,
+            antialias: true,
+            alpha: true,
+        });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            100
+        );
+        camera.position.set(0, 1.2, 7);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffb6c1, 1.1);
+        dirLight.position.set(4, 8, 5);
+        scene.add(dirLight);
+
+        function createHeartGeometry() {
+            const x = 0,
+                y = 0;
+            const heartShape = new THREE.Shape();
+
+            heartShape.moveTo(x, y);
+            heartShape.bezierCurveTo(x, y - 0.5, x - 1.2, y - 0.5, x - 1.2, y + 0.2);
+            heartShape.bezierCurveTo(
+                x - 1.2,
+                y + 0.9,
+                x - 0.3,
+                y + 1.4,
+                x,
+                y + 1.8
+            );
+            heartShape.bezierCurveTo(
+                x + 0.3,
+                y + 1.4,
+                x + 1.2,
+                y + 0.9,
+                x + 1.2,
+                y + 0.2
+            );
+            heartShape.bezierCurveTo(
+                x + 1.2,
+                y - 0.5,
+                x,
+                y - 0.5,
+                x,
+                y
+            );
+
+            const geometry = new THREE.ExtrudeGeometry(heartShape, {
+                depth: 0.25,
+                bevelEnabled: true,
+                bevelSegments: 2,
+                steps: 1,
+                bevelSize: 0.07,
+                bevelThickness: 0.07,
+            });
+
+            geometry.center();
+            return geometry;
+        }
+
+        const heartGeometry = createHeartGeometry();
+        const hearts = [];
+        const heartCount = 40;
+        const heartColors = [0xff9a9e, 0xfad0c4, 0xfbc2eb, 0xffdde1];
+
+        for (let i = 0; i < heartCount; i++) {
+            const color =
+                heartColors[Math.floor(Math.random() * heartColors.length)];
+            const material = new THREE.MeshStandardMaterial({
+                color,
+                metalness: 0.1,
+                roughness: 0.3,
+            });
+
+            const heart = new THREE.Mesh(heartGeometry, material);
+
+            heart.position.set(
+                (Math.random() - 0.5) * 14,
+                (Math.random() - 0.5) * 8,
+                (Math.random() - 0.5) * 10
+            );
+
+            const s = 0.25 + Math.random() * 0.5;
+            heart.scale.set(s, s, s);
+
+            heart.rotation.set(
+                Math.random() * Math.PI,
+                Math.random() * Math.PI,
+                Math.random() * Math.PI
+            );
+
+            heart.userData = {
+                baseY: heart.position.y,
+                floatSpeed: 0.4 + Math.random() * 0.6,
+                rotateSpeed: 0.4 + Math.random() * 0.8,
+                pulseScale: 1,
+                baseScale: s,
+            };
+
+            scene.add(heart);
+            hearts.push(heart);
+        }
+
+        let targetRotX = 0;
+        let targetRotY = 0;
+
+        function onPointerMove(e) {
+            const x = (e.clientX / window.innerWidth) * 2 - 1;
+            const y = (e.clientY / window.innerHeight) * 2 - 1;
+            targetRotY = x * 0.3;
+            targetRotX = y * 0.3;
+        }
+
+        window.addEventListener("pointermove", onPointerMove);
+
+        window.addEventListener(
+            "deviceorientation",
+            (event) => {
+                if (event.beta === null || event.gamma === null) return;
+                const x = event.gamma / 45;
+                const y = event.beta / 45;
+                targetRotY = x * 0.2;
+                targetRotX = y * 0.2;
+            },
+            true
+        );
+
+        window.addEventListener("resize", () => {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            renderer.setSize(w, h);
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+        });
+
+        let clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const t = clock.getElapsedTime();
+
+            camera.position.x += (targetRotY * 5 - camera.position.x) * 0.03;
+            camera.position.y += (1.2 - targetRotX * 2 - camera.position.y) * 0.03;
+            camera.lookAt(0, 0, 0);
+
+            hearts.forEach((heart, index) => {
+                const data = heart.userData;
+                heart.position.y =
+                    data.baseY + Math.sin(t * data.floatSpeed + index) * 0.6;
+
+                const pulse = 1 + (data.pulseScale - 1) * 0.6;
+                const s = data.baseScale;
+                heart.scale.setScalar(pulse * s);
+
+                heart.rotation.y += 0.01 * data.rotateSpeed;
+                heart.rotation.x += 0.005 * data.rotateSpeed;
+
+                // slowly relax pulseScale back to 1
+                data.pulseScale += (1 - data.pulseScale) * 0.05;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // ====== MESSAGE REVEAL LOGIC ======
+        const messageEl = document.getElementById("message");
+        const signatureEl = document.getElementById("signature");
+        const revealBtn = document.getElementById("revealBtn");
+        const glowRing = document.getElementById("glow");
+        const photoSticks = document.querySelectorAll(".photo-stick");
+
+        const lines = [
+            "Mitchyy, I made this little page just for you. 💌",
+            "I still laugh thinking about our first date – me drinking mould water, throwing up, and you still choosing to stay and kiss me after.",
+            "On our second date when you cried, all I wanted was to hold you and be your safe place.",
+            "I love that it’s pharmacist × game dev – you heal people in real life, I build worlds with code, and somehow we found each other.",
+            "Reminder that you are doing great, and if you ever think that no one is proud of you, remember that I am. Always. 🥺",
+            "If life was a game, you’d be my favourite level and my favourite player two. 🎮",
+        ];
+
+        let currentIndex = 0;
+        let isAnimating = false;
+
+        function pulseHearts() {
+            hearts.forEach((heart) => {
+                heart.userData.pulseScale = 1.5;
+            });
+            glowRing.classList.add("active");
+            setTimeout(() => glowRing.classList.remove("active"), 400);
+        }
+
+        function wigglePhotos() {
+            photoSticks.forEach((stick) => {
+                stick.classList.remove("wiggle");
+                // force reflow so animation can restart
+                void stick.offsetWidth;
+                stick.classList.add("wiggle");
+            });
+        }
+
+        function revealNextLine() {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            pulseHearts();
+            wigglePhotos();
+
+            messageEl.classList.add("hidden");
+
+            setTimeout(() => {
+                if (currentIndex < lines.length) {
+                    messageEl.textContent = lines[currentIndex];
+                    currentIndex++;
+
+                    if (currentIndex === lines.length) {
+                        revealBtn.textContent = "One last thing… 💖";
+                    } else {
+                        revealBtn.textContent = "Tap again ✨";
+                    }
+
+                    messageEl.classList.remove("hidden");
+                    isAnimating = false;
+                } else {
+                    // Final message + show signature and hide button
+                    messageEl.textContent =
+                        "I want to make more memories with you, and if I could, I’d do it all again with you. ❤️";
+                    messageEl.classList.remove("hidden");
+                    signatureEl.classList.add("visible");
+                    revealBtn.style.opacity = "0";
+                    setTimeout(() => {
+                        revealBtn.style.display = "none";
+                    }, 300);
+                    isAnimating = false;
+                }
+            }, 220);
+        }
+
+        revealBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            revealNextLine();
+        });
+    </script>
+</body>
+
+</html>
